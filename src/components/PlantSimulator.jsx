@@ -18,6 +18,20 @@ const minToHoras = (min) => min / 60
 const horasToMin = (h) => h * 60
 
 /**
+ * Ícono de ayuda (ⓘ) con tooltip accesible. Se muestra al pasar el mouse
+ * o al enfocarlo con el teclado (Tab). El texto se anuncia por lectores
+ * de pantalla vía aria-label.
+ */
+function HelpTip({ text }) {
+  return (
+    <span className="help-tip" tabIndex={0} role="note" aria-label={text}>
+      <span className="help-tip__icon" aria-hidden="true">ⓘ</span>
+      <span className="help-tip__bubble" role="tooltip">{text}</span>
+    </span>
+  )
+}
+
+/**
  * Valida los campos del formulario y devuelve un objeto { campo: mensaje }
  * con solo los campos que tienen un valor inconsistente.
  */
@@ -126,12 +140,18 @@ export default function PlantSimulator() {
 
       <section id="plant-config">
         <div className="field-row">
-          <label htmlFor="pl-dias">Días</label>
+          <label htmlFor="pl-dias">
+            Días
+            <HelpTip text="Horizonte de simulación. Está fijo en 30 (1 mes laboral) porque el modelo matemático del trabajo está definido para ese período." />
+          </label>
           <input id="pl-dias" type="number" value={DIAS_SIMULACION} disabled readOnly />
           <span className="field-hint subtle">fijo por el modelo (1 mes)</span>
         </div>
         <div className="field-row">
-          <label htmlFor="pl-tasa">α (proyectores/día)</label>
+          <label htmlFor="pl-tasa">
+            α (proyectores/día)
+            <HelpTip text="Ritmo promedio de llegada de proyectores RAEE por día. Es la media de una distribución de Poisson: algunos días llegan más y otros menos. Subirlo simula mayor demanda y más carga de trabajo." />
+          </label>
           <input
             id="pl-tasa" type="number" min="0.01" step="0.5"
             className={errores.tasa ? 'input-invalid' : undefined}
@@ -142,7 +162,10 @@ export default function PlantSimulator() {
         {errores.tasa && <p className="field-error">{errores.tasa}</p>}
 
         <div className="field-row">
-          <label htmlFor="pl-umbral">Umbral capacidad (horas/mes)</label>
+          <label htmlFor="pl-umbral">
+            Umbral capacidad (horas/mes)
+            <HelpTip text="Límite de horas de trabajo que la planta puede absorber en el mes. Al simular, se compara el tiempo total acumulado contra este valor: si lo supera, el sistema recomienda reubicar operarios o cambiar la estrategia." />
+          </label>
           <input
             id="pl-umbral" type="number" min="1" step="1"
             className={errores.umbralHoras ? 'input-invalid' : undefined}
@@ -153,7 +176,10 @@ export default function PlantSimulator() {
         {errores.umbralHoras && <p className="field-error">{errores.umbralHoras}</p>}
 
         <div className="field-row">
-          <label htmlFor="pl-seed">Semilla n₀</label>
+          <label htmlFor="pl-seed">
+            Semilla n₀
+            <HelpTip text="Valor inicial del generador de números aleatorios. Con una semilla fija obtenés siempre el mismo resultado (reproducible, ideal para comparar escenarios). El botón ↺ la vacía para usar la hora actual y obtener una corrida nueva al azar." />
+          </label>
           <input
             id="pl-seed" type="number" step="1" min="0" placeholder="Date.now()"
             className={errores.seed ? 'input-invalid' : undefined}
@@ -165,9 +191,15 @@ export default function PlantSimulator() {
         {errores.seed && <p className="field-error">{errores.seed}</p>}
 
         <details className="advanced-params">
-          <summary>Parámetros MCM</summary>
+          <summary>
+            Parámetros MCM
+            <HelpTip text="Constantes del Método Congruencial Mixto, el algoritmo que genera los números pseudoaleatorios base: xₙ₊₁ = (a·xₙ + c) mod m. Vienen con valores estándar probados; no hace falta tocarlos para usar el simulador." />
+          </summary>
           <div className="field-row">
-            <label htmlFor="pl-a">a</label>
+            <label htmlFor="pl-a">
+              a
+              <HelpTip text="Multiplicador del MCM. Debe ser un entero ≥ 1 y menor que m." />
+            </label>
             <input
               id="pl-a" type="number" step="1" min="1"
               className={errores.mcmA ? 'input-invalid' : undefined}
@@ -177,7 +209,10 @@ export default function PlantSimulator() {
           </div>
           {errores.mcmA && <p className="field-error">{errores.mcmA}</p>}
           <div className="field-row">
-            <label htmlFor="pl-c">c</label>
+            <label htmlFor="pl-c">
+              c
+              <HelpTip text="Incremento (constante aditiva) del MCM. Debe ser un entero ≥ 0 y menor que m." />
+            </label>
             <input
               id="pl-c" type="number" step="1" min="0"
               className={errores.mcmC ? 'input-invalid' : undefined}
@@ -187,7 +222,10 @@ export default function PlantSimulator() {
           </div>
           {errores.mcmC && <p className="field-error">{errores.mcmC}</p>}
           <div className="field-row">
-            <label htmlFor="pl-m">m</label>
+            <label htmlFor="pl-m">
+              m
+              <HelpTip text="Módulo del MCM: define el rango y el período del generador. Debe ser un entero ≥ 2 y mayor que a y c." />
+            </label>
             <input
               id="pl-m" type="number" step="1" min="2"
               className={errores.mcmM ? 'input-invalid' : undefined}

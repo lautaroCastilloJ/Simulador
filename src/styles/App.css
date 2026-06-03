@@ -57,6 +57,87 @@
   }
 }
 
+/* Etiqueta con ícono de ayuda al lado */
+.field-row label,
+.advanced-params summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ── Tooltip de ayuda (ⓘ) ─────────────────────────────────── */
+.help-tip {
+  position: relative;
+  display: inline-flex;
+  cursor: help;
+  outline: none;
+}
+
+.help-tip__icon {
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0.65;
+  transition: opacity 0.15s, color 0.15s;
+  line-height: 1;
+}
+
+.help-tip:hover .help-tip__icon,
+.help-tip:focus-visible .help-tip__icon {
+  opacity: 1;
+  color: var(--accent);
+}
+
+.help-tip__bubble {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 200;
+  width: max-content;
+  max-width: 260px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: var(--text-h);
+  color: var(--bg);
+  font-family: var(--sans);
+  font-size: 12.5px;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: normal;
+  text-align: left;
+  box-shadow: var(--shadow);
+
+  /* Oculto por defecto, sin perder accesibilidad al enfocar */
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.15s, transform 0.15s, visibility 0.15s;
+  pointer-events: none;
+}
+
+/* Flechita superior del globo */
+.help-tip__bubble::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 14px;
+  border: 6px solid transparent;
+  border-bottom-color: var(--text-h);
+}
+
+.help-tip:hover .help-tip__bubble,
+.help-tip:focus-visible .help-tip__bubble,
+.help-tip:focus-within .help-tip__bubble {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+@media (max-width: 640px) {
+  .help-tip__bubble {
+    max-width: min(260px, 80vw);
+  }
+}
+
 /* ── Shared: buttons ─────────────────────────────────────── */
 .btn-primary {
   font-family: var(--mono);
