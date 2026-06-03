@@ -50,13 +50,13 @@ Cuando usted aprieta Simular, el modelo procesa los 30 días equipo por equipo y
 
 ## 1. Las tarjetas de indicadores
 <img width="1056" height="174" alt="image" src="https://github.com/user-attachments/assets/8043aed6-55f3-46c2-b22c-ca4f3aba2d63" />
-🕒 Tiempo total de revisión — el indicador estrella
+🕒 Tiempo total de revisión
   Es la suma de todo el tiempo de trabajo del mes: triaje + servicio de todos los proyectores que llegaron.
   - Se muestra en horas (el número grande) y abajo en minutos (el dato fino).
   - Este es el valor que se compara contra tu umbral de capacidad. Cuanto más alto, más cargada estuvo la planta.
 
   ♻️  Mercurio recuperado
-  Masa de mercurio recuperada en el mes. Solo lo generan los equipos que cayeron en la ruta Descontaminación (cada uno aporta entre 100 y 300 unidades × 70% de tasa de recuperación).
+  es la cantidad de Masa de mercurio recuperada en el mes. Solo lo generan los equipos que cayeron en la ruta Descontaminación (cada uno aporta entre 100 y 300 unidades × 70% de tasa de recuperación).
 
   🔩 Materiales recuperados
   Masa de plásticos/metales recuperada, y solo viene de la ruta Desensamblaje (800–1200 unidades × 35%).
