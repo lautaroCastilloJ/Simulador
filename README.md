@@ -1,5 +1,5 @@
 # Documentación: Explicación de la Interfaz
-<img width="1112" height="630" alt="image" src="https://github.com/user-attachments/assets/d97c292a-4782-4ba6-9513-7c638a5fa846" />
+<img width="1363" height="628" alt="image" src="https://github.com/user-attachments/assets/72bc5e6b-c167-4337-9ac5-64ea5fa2e181" />
 
 ## Días = 30 (fijo)
   El horizonte de simulación es siempre 1 mes laboral. Está bloqueado a propósito porque el modelo matemático del trabajo está pensado para ese período. No se lo puede cambiar a menos que el cliente lo pida.
