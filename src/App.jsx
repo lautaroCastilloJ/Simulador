@@ -5,7 +5,6 @@ function App() {
   return (
     <>
       <PlantSimulator />
-      <div className="ticks" />
       <section id="spacer" />
     </>
   )

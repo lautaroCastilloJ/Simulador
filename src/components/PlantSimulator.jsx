@@ -109,13 +109,20 @@ export default function PlantSimulator() {
 
   return (
     <>
+      <a
+        className="btn-docs"
+        href="https://github.com/lautaroCastilloJ/Simulador#readme"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        📄 Documentación
+      </a>
+
       <section id="plant-header">
         <img className="brand-logo" src="/logoElectrogreem.jpg" alt="Logo ElectroGreem S.R.L." />
         <h1>Planta ElectroGreem S.R.L.</h1>
         <p>Simulación de tratamiento de proyectores RAEE sobre un horizonte de 30 días (1 mes)</p>
       </section>
-
-      <div className="ticks" />
 
       <section id="plant-config">
         <div className="field-row">
@@ -203,7 +210,6 @@ export default function PlantSimulator() {
 
       {results && (
         <>
-          <div className="ticks" />
           <section id="plant-results">
             {/* Indicadores principales del enunciado */}
             <div className="stats-row">
