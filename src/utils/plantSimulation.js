@@ -163,3 +163,178 @@ export function runSimulation({ config = ELECTROGREEM_CONFIG, seed, mcm = {} } =
     },
   }
 }
+
+/* =============================================================================
+ * EXPLICACIÓN PASO A PASO DEL CÓDIGO (línea por línea)
+ * =============================================================================
+ *
+ * ##########################################################################
+ * IMPORTACIONES  → líneas 19 a 23
+ * ##########################################################################
+ * Traen al archivo las funciones que viven en otros módulos para poder usarlas.
+ *
+ * Línea 19  → import { createGenerator } from './pseudoRandom.js'
+ *   Importa la fábrica del generador de números pseudoaleatorios (MCM).
+ * Línea 20  → import { poissonRandom } from './distributionPoisson.js'
+ *   Importa la función que genera las llegadas diarias (Poisson).
+ * Línea 21  → import { uniformRandom } from './distributionUniform.js'
+ *   Importa la función que genera valores Uniformes (triaje, masas).
+ * Línea 22  → import { exponentialRandom } from './distributionExponential.js'
+ *   Importa la función que genera el tiempo de servicio (Exponencial).
+ * Línea 23  → import { multinomialPick } from './distributionMultinomial.js'
+ *   Importa la función que clasifica la ruta de cada proyector (Multinomial).
+ *
+ * ##########################################################################
+ * CONSTANTE RUTA  → líneas 26 a 31
+ * ##########################################################################
+ * Línea 26  → export const RUTA = {
+ *   Declara y exporta un objeto que asigna un NOMBRE legible a cada índice de
+ *   ruta. Sirve para escribir RUTA.DESCONTAMINACION en lugar de un número suelto.
+ * Líneas 27-30 → REACONDICIONAMIENTO: 0, DESENSAMBLAJE: 1, DESCONTAMINACION: 2,
+ *   ALMACENAMIENTO: 3. Cada ruta recibe el índice que le corresponde en el
+ *   arreglo de probabilidades acumuladas F(X).
+ * Línea 31  → }  Cierra el objeto RUTA.
+ *
+ * ##########################################################################
+ * CONFIGURACIÓN ELECTROGREEM_CONFIG  → líneas 37 a 59
+ * ##########################################################################
+ * Objeto exportado con todos los parámetros del modelo (vienen del enunciado).
+ *
+ * Línea 37  → export const ELECTROGREEM_CONFIG = {  Abre el objeto de config.
+ * Línea 38  → dias: 30  Cantidad de días que dura la simulación (horizonte).
+ * Línea 39  → tasaLlegadas: 3  α de la Poisson: proyectores promedio por día.
+ * Línea 40  → triaje: { a: 20, b: 35 }  Límites de la Uniforme del triaje (min).
+ * Línea 43  → probabilidades: [0.35, 0.40, 0.10, 0.15]  Probabilidad de cada
+ *   ruta; al acumularlas dan F(X) = 0.35, 0.75, 0.85, 1.00.
+ * Líneas 45-50 → rutas: [...]  Arreglo con el nombre y la media de servicio
+ *   (mediaServicio) de cada ruta. Almacenamiento usa 0 (no consume servicio).
+ * Línea 53  → mercurio: { a, b, tasaRecuperacion }  Parámetros de la Uniforme de
+ *   masa de mercurio y el porcentaje que se recupera (0.70).
+ * Línea 55  → materiales: { a, b, tasaRecuperacion }  Ídem para plásticos/metales.
+ * Línea 58  → umbralCapacidad: 30000  Tope de minutos; si se supera, hay que
+ *   reubicar. Línea 59 → }  Cierra el objeto de configuración.
+ *
+ * ##########################################################################
+ * function runSimulation({ config, seed, mcm })  → líneas 70 a 165
+ * ##########################################################################
+ * Es el motor: ejecuta toda la simulación y devuelve los resultados agregados.
+ *
+ * Línea 70  → export function runSimulation({ config = ELECTROGREEM_CONFIG, seed, mcm = {} } = {}) {
+ *   Declara y exporta la función. Usa desestructuración con valores por defecto:
+ *   si no se pasa config usa ELECTROGREEM_CONFIG, mcm vacío {}, y el "= {}" final
+ *   permite llamarla incluso sin argumentos.
+ *
+ * Línea 71  → const cfg = { ...ELECTROGREEM_CONFIG, ...config }
+ *   Combina (operador spread ...) la config por defecto con la recibida. Lo que
+ *   venga en "config" pisa a lo de ELECTROGREEM_CONFIG. "cfg" es la config final.
+ *
+ * Línea 72  → const usedSeed = seed !== undefined ? seed : Date.now()
+ *   Operador ternario: si se pasó una semilla la usa (reproducibilidad); si no,
+ *   INVOCA Date.now() para generar una semilla basada en la hora actual.
+ *
+ * Línea 73  → const gen = createGenerator({ seed: usedSeed, ...mcm })
+ *   INVOCA createGenerator() para crear el generador MCM con la semilla y los
+ *   parámetros { a, c, m } opcionales. Devuelve un objeto generador en "gen".
+ *
+ * Línea 74  → const nextU = () => gen.next()
+ *   Define una función flecha "nextU" que, al invocarla, INVOCA gen.next() y
+ *   devuelve el siguiente u ∈ [0, 1). Es la que se pasa a las distribuciones.
+ *
+ * Líneas 77-83  → Acumuladores globales inicializados en 0:
+ *   tiempoTotalRevision (triaje + servicio de todos), tiempoTriajeTotal,
+ *   tiempoServicioTotal, mercurioRecuperado, materialesRecuperados,
+ *   totalProyectores y conteoRutas = [0,0,0,0] (cuántos cayeron en cada ruta).
+ *
+ * Línea 85  → const logDiario = []
+ *   Arreglo vacío donde se guardará un resumen por cada día simulado.
+ *
+ * --------------------------------------------------------------------------
+ * BUCLE DE DÍAS  → líneas 87 a 139
+ * --------------------------------------------------------------------------
+ * Línea 87  → for (let dia = 1; dia <= cfg.dias; dia++) {
+ *   Repite el bloque una vez por cada día, desde el día 1 hasta cfg.dias (30).
+ *
+ * Línea 88  → const llegadas = poissonRandom(nextU, cfg.tasaLlegadas)
+ *   INVOCA poissonRandom() para obtener cuántos proyectores llegan ese día
+ *   (entero), usando la tasa α = cfg.tasaLlegadas.
+ *
+ * Líneas 90-93  → Acumuladores DEL DÍA inicializados en 0: tiempoDia,
+ *   mercurioDia, materialesDia y rutasDia = [0,0,0,0]. Se reinician cada día.
+ *
+ * --------------------------------------------------------------------------
+ * BUCLE DE PROYECTORES DEL DÍA  → líneas 95 a 128
+ * --------------------------------------------------------------------------
+ * Línea 95  → for (let i = 0; i < llegadas; i++) {
+ *   Repite el procesamiento una vez por cada proyector que llegó ese día.
+ *
+ * Línea 96  → totalProyectores++
+ *   Suma 1 al contador global de proyectores procesados.
+ *
+ * Línea 99  → const triaje = uniformRandom(nextU, cfg.triaje.a, cfg.triaje.b)
+ *   1) Triaje (SIEMPRE): INVOCA uniformRandom() para obtener el tiempo de
+ *   inspección inicial entre 20 y 35 min.
+ * Línea 100 → tiempoTriajeTotal += triaje  Suma ese triaje al acumulado global.
+ *
+ * Línea 103 → const { index: ruta } = multinomialPick(nextU, cfg.probabilidades)
+ *   2) Clasificación: INVOCA multinomialPick() y, por desestructuración, guarda
+ *   en "ruta" el campo "index" devuelto (la categoría/ruta elegida).
+ * Línea 104 → conteoRutas[ruta]++  Suma 1 a esa ruta en el conteo global.
+ * Línea 105 → rutasDia[ruta]++     Suma 1 a esa ruta en el conteo del día.
+ *
+ * Línea 108 → let servicio = 0
+ *   3) Servicio: inicializa el tiempo de servicio en 0 (sirve para Almacenamiento).
+ * Línea 109 → if (cfg.rutas[ruta].mediaServicio > 0) {
+ *   Solo calcula servicio si la ruta tiene media > 0 (Almacenamiento es 0).
+ * Línea 110 → servicio = exponentialRandom(nextU, cfg.rutas[ruta].mediaServicio)
+ *   INVOCA exponentialRandom() para obtener el tiempo de servicio según la
+ *   media de la ruta. Línea 111 → }  Cierra el if.
+ * Línea 112 → tiempoServicioTotal += servicio  Suma el servicio al acumulado global.
+ *
+ * Línea 115 → if (ruta === RUTA.DESCONTAMINACION) {
+ *   4) Recuperación de materiales según la ruta. Si es Descontaminación:
+ * Línea 116 →   const m = uniformRandom(nextU, cfg.mercurio.a, cfg.mercurio.b)
+ *     INVOCA uniformRandom() para la masa de mercurio (100 a 300).
+ * Línea 117 →   const recuperado = m * cfg.mercurio.tasaRecuperacion
+ *     Multiplica la masa por la tasa (0.70) → mercurio efectivamente recuperado.
+ * Líneas 118-119 → Suma "recuperado" al acumulado global y al del día.
+ * Línea 120 → } else if (ruta === RUTA.DESENSAMBLAJE) {
+ *   Si en cambio la ruta es Desensamblaje:
+ * Línea 121 →   const pm = uniformRandom(nextU, cfg.materiales.a, cfg.materiales.b)
+ *     INVOCA uniformRandom() para la masa de plásticos/metales (800 a 1200).
+ * Línea 122 →   const recuperado = pm * cfg.materiales.tasaRecuperacion
+ *     Multiplica por la tasa (0.35) → materiales recuperados.
+ * Líneas 123-124 → Suma al acumulado global y al del día.
+ * Línea 125 → }  Cierra el bloque if/else if (las otras rutas no recuperan nada).
+ *
+ * Línea 127 → tiempoDia += triaje + servicio
+ *   Suma al tiempo del día el total de revisión de este proyector (triaje + servicio).
+ * Línea 128 → }  Cierra el bucle de proyectores del día.
+ *
+ * Línea 130 → tiempoTotalRevision += tiempoDia
+ *   Acumula el tiempo del día al gran total de toda la simulación.
+ * Líneas 131-138 → logDiario.push({ ... })
+ *   INVOCA push() para agregar al log un objeto con el resumen del día: número
+ *   de día, llegadas, tiempoDia, rutasDia, mercurioDia y materialesDia.
+ * Línea 139 → }  Cierra el bucle de días.
+ *
+ * --------------------------------------------------------------------------
+ * RESULTADO FINAL  → líneas 141 a 164
+ * --------------------------------------------------------------------------
+ * Línea 141 → const superaUmbral = tiempoTotalRevision > cfg.umbralCapacidad
+ *   Compara el tiempo total acumulado contra el umbral de capacidad. Guarda en
+ *   "superaUmbral" un booleano (true si se pasó del límite).
+ *
+ * Líneas 143-164 → return { ... }
+ *   Devuelve un único objeto con todos los resultados:
+ *     - seed, config: la semilla usada y la config aplicada (reproducibilidad).
+ *     - tiempoTotalRevision, mercurioRecuperado, materialesRecuperados:
+ *       indicadores principales pedidos en el enunciado.
+ *     - tiempoTriajeTotal, tiempoServicioTotal, totalProyectores, conteoRutas,
+ *       logDiario: desgloses auxiliares para análisis.
+ *     - decision: objeto con superaUmbral, el umbral y una "recomendacion"
+ *       elegida con un ternario según si se superó o no la capacidad operativa.
+ *
+ * Línea 165 → }  Cierra la función runSimulation.
+ *
+ * =============================================================================
+ */
