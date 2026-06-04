@@ -1,30 +1,7 @@
-/**
- * Generador de números pseudoaleatorios usando el Método Congruencial Mixto.
- * Fórmula: n(i+1) = (a * n(i) + c) mod m
- *          u(i)   = n(i) / m  →  resultado ∈ [0, 1)
- *
- * Parámetros por defecto (período máximo, condiciones de Hull-Dobell):
- *   a = 1664525
- *   c = 1013904223
- *   m = 2^32 = 4294967296
- */
+export const DEFAULT_A = 1664525;
+export const DEFAULT_C = 1013904223;
+export const DEFAULT_M = 4294967291; // número primo más grande menor que 2³²
 
-const DEFAULT_A = 1664525;
-const DEFAULT_C = 1013904223;
-const DEFAULT_M = 4294967296; // 2^32
-
-/**
- * Crea un generador con su propio estado interno. Cada llamada a next()
- * avanza el estado y devuelve un nuevo u ∈ [0, 1). A partir de la misma
- * semilla se obtiene siempre la misma secuencia (reproducibilidad).
- *
- * @param {object} [options={}] - Opciones de configuración.
- * @param {number} [options.seed]         - Semilla inicial. Por defecto: Date.now().
- * @param {number} [options.a=1664525]    - Multiplicador.
- * @param {number} [options.c=1013904223] - Incremento.
- * @param {number} [options.m=4294967296] - Módulo (2^32).
- * @returns {{ next: () => number }} Objeto generador con el método next().
- */
 export function createGenerator({ seed, a = DEFAULT_A, c = DEFAULT_C, m = DEFAULT_M } = {}) {
   let state = BigInt(seed !== undefined ? seed : Date.now());
   const bigA = BigInt(a);
@@ -38,6 +15,7 @@ export function createGenerator({ seed, a = DEFAULT_A, c = DEFAULT_C, m = DEFAUL
 
   return { next };
 }
+
 
 /* =============================================================================
  * EXPLICACIÓN PASO A PASO DEL CÓDIGO (línea por línea)
@@ -69,55 +47,62 @@ export function createGenerator({ seed, a = DEFAULT_A, c = DEFAULT_C, m = DEFAUL
  * que JavaScript maneja con seguridad como Number: 2^53). BigInt permite operar
  * con enteros gigantes sin perder precisión; al final se convierte a Number.
  *
+ * ¿Qué significa "export"? Es la palabra clave de los módulos de JavaScript que
+ * hace PÚBLICO algo de este archivo para que otros archivos puedan importarlo
+ * con "import". Sin "export", las constantes y la función quedarían privadas y
+ * solo se podrían usar dentro de pseudoRandom.js. Acá se exportan las tres
+ * constantes (para reutilizarlas, p. ej. en el formulario) y createGenerator
+ * (para que la simulación pueda crear su generador).
+ *
  * ##########################################################################
- * CONSTANTES POR DEFECTO  → líneas 12 a 14
+ * CONSTANTES POR DEFECTO  → líneas 1 a 3
  * ##########################################################################
  *
- * Línea 12  → const DEFAULT_A = 1664525;
+ * Línea 1  → export const DEFAULT_A = 1664525;
  *   Multiplicador "a" por defecto. Es una constante recomendada que, junto con
  *   c y m, cumple las condiciones de Hull-Dobell para lograr período máximo
  *   (recorrer todos los valores posibles antes de repetir la secuencia).
  *
- * Línea 13  → const DEFAULT_C = 1013904223;
+ * Línea 2  → export const DEFAULT_C = 1013904223;
  *   Incremento "c" por defecto. Al ser distinto de 0, el método es "mixto"
  *   (si fuera 0 sería "multiplicativo").
  *
- * Línea 14  → const DEFAULT_M = 4294967296; // 2^32
- *   Módulo "m" por defecto, igual a 2^32. Es el divisor del "mod" y define el
- *   rango de los números generados (de 0 a m-1) y el período máximo posible.
+ * Línea 3  → export const DEFAULT_M = 4294967291;
+ *   Módulo "m" por defecto: el número primo más grande menor que 2^32. Es el
+ *   divisor del "mod" y define el rango de los números generados (de 0 a m-1).
  *
  * ##########################################################################
- * function createGenerator({ seed, a, c, m })  → líneas 30 a 41
+ * function createGenerator({ seed, a, c, m })  → líneas 5 a 17
  * ##########################################################################
  * Crea un generador con su propio estado interno y devuelve su método next().
  * Es el único que usa la simulación (plantSimulation.js) para ser reproducible.
  *
- * Línea 30  → export function createGenerator({ seed, a = DEFAULT_A, c = DEFAULT_C, m = DEFAULT_M } = {}) {
+ * Línea 5  → export function createGenerator({ seed, a = DEFAULT_A, c = DEFAULT_C, m = DEFAULT_M } = {}) {
  *   Declara y exporta la función. Recibe un objeto de opciones por
  *   desestructuración: si no se pasan a/c/m usa los valores por defecto, y el
  *   "= {}" final permite invocarla sin argumentos.
  *
- * Línea 31  → let state = BigInt(seed !== undefined ? seed : Date.now());
+ * Línea 6  → let state = BigInt(seed !== undefined ? seed : Date.now());
  *   Estado interno del generador. Ternario: usa la semilla recibida o, si no
  *   hay, INVOCA Date.now() (la hora actual). Se guarda como BigInt.
  *
- * Líneas 32-34 → const bigA/bigC/bigM = BigInt(a/c/m);
+ * Líneas 7-9 → const bigA/bigC/bigM = BigInt(a/c/m);
  *   Convierte los parámetros a BigInt una sola vez, para usarlos directamente
  *   en la fórmula sin reconvertir en cada llamada.
  *
- * --- function next()  → líneas 36 a 39 ---
+ * --- function next()  → líneas 11 a 14 ---
  *   Es la función que realmente genera cada número del generador.
- * Línea 36  → function next() {  Declara la función interna (closure).
- * Línea 37  → state = (bigA * state + bigC) % bigM;
+ * Línea 11  → function next() {  Declara la función interna (closure).
+ * Línea 12  → state = (bigA * state + bigC) % bigM;
  *   Aplica la fórmula del MCM: multiplica el estado por bigA, suma bigC y toma
  *   el resto de dividir por bigM (operador %). El resultado se guarda como NUEVO
  *   estado, de modo que la próxima llamada parta de aquí (esto es lo iterativo).
- * Línea 38  → return Number(state) / m;
+ * Línea 13  → return Number(state) / m;
  *   Convierte el estado (BigInt) a Number y lo divide por m para "normalizarlo"
  *   al rango [0, 1). Devuelve ese u.
- * Línea 39  → }  Cierra next.
+ * Línea 14  → }  Cierra next.
  *
- * Línea 41  → return { next };
+ * Línea 16  → return { next };
  *   Devuelve un OBJETO con la función next(). Gracias al "closure", next() sigue
  *   accediendo a la variable "state" privada de esta instancia. Por eso cada
  *   generador creado mantiene su propia secuencia por separado, y cada llamada

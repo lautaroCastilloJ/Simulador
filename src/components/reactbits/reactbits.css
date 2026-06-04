@@ -1,0 +1,80 @@
+/* =============================================================================
+ * Componentes de React Bits (reactbits.dev) adaptados — sin dependencias.
+ * Versiones autocontenidas en CSS puro, integradas al tema del simulador
+ * (acento verde y soporte claro/oscuro mediante las variables de index.css).
+ * ========================================================================== */
+
+/* ── GradientText: degradado animado recortado sobre el texto ────────────── */
+.rb-gradient-text {
+  display: inline-block;
+  font-family: inherit; /* misma tipografía que su contenedor (h1) */
+  /* line-height propio: sin esto hereda el valor fijo (~26px) de :root y el
+     recorte del degradado corta la parte superior/inferior de las letras. */
+  line-height: 1.2;
+  padding-bottom: 0.08em;
+  background-size: 300% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: rb-gradient-move 8s linear infinite;
+}
+
+@keyframes rb-gradient-move {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ── ShinyText: banda de brillo que recorre el texto ─────────────────────── */
+.rb-shiny-text {
+  display: inline-block;
+  font-family: inherit; /* misma tipografía que su contenedor (p) */
+  background: linear-gradient(
+    120deg,
+    var(--text) 0%,
+    var(--text) 42%,
+    var(--text-h) 50%,
+    var(--text) 58%,
+    var(--text) 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: rb-shine 5s linear infinite;
+}
+
+@keyframes rb-shine {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* ── FadeContent: aparición con desvanecido y leve desplazamiento ─────────── */
+.rb-fade-content {
+  opacity: 0;
+  animation-name: rb-fade-in;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes rb-fade-in {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Accesibilidad: respeta a quien prefiere menos movimiento ────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .rb-gradient-text,
+  .rb-shiny-text,
+  .rb-fade-content {
+    animation: none;
+  }
+  .rb-fade-content { opacity: 1; transform: none; }
+  /* Degradado/brillo quedan estáticos pero legibles */
+  .rb-shiny-text {
+    color: var(--text);
+    -webkit-text-fill-color: var(--text);
+  }
+}

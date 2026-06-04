@@ -1,11 +1,3 @@
-/**
- * Distribución Uniforme continua U(a, b)
- *
- * Genera un valor real distribuido uniformemente en el intervalo [a, b).
- *
- * Fórmula:
- *   x = a + (b - a) * u    ← u es el número pseudoaleatorio u ∈ [0, 1)
- */
 
 /**
  * Genera un valor real con distribución Uniforme(a, b).
@@ -19,10 +11,25 @@ export function uniformRandom(nextU, a, b) {
   return a + (b - a) * nextU()
 }
 
+
+
+
+
+
 /* =============================================================================
  * EXPLICACIÓN PASO A PASO DEL CÓDIGO (línea por línea)
  * =============================================================================
  *
+ * 
+ *
+ * Distribución Uniforme continua U(a, b)
+ *
+ * Genera un valor real distribuido uniformemente en el intervalo [a, b).
+ *
+ * Fórmula:
+ *   x = a + (b - a) * u    ← u es el número pseudoaleatorio u ∈ [0, 1)
+ *
+
  * --------------------------------------------------------------------------
  * function uniformRandom(nextU, a, b)  → líneas 18 a 20
  * --------------------------------------------------------------------------

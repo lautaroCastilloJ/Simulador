@@ -360,6 +360,27 @@ h2 .subtle {
     padding: 6px 12px;
     font-size: 13px;
   }
+
+  /* En celular se colapsa a un botón circular con solo el ícono, para no
+     ocupar ancho ni pisar el encabezado. El texto sigue accesible por aria-label. */
+  @media (max-width: 640px) {
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+    border-radius: 50%;
+
+    .btn-docs__icon {
+      font-size: 17px;
+      line-height: 1;
+    }
+    .btn-docs__label {
+      display: none;
+    }
+  }
 }
 
 /* ── Plant Simulator ─────────────────────────────────────── */

@@ -1,7 +1,12 @@
 import { useState, useCallback, useMemo } from 'react'
 import { runSimulation, ELECTROGREEM_CONFIG } from '../utils/plantSimulation'
+import { DEFAULT_A, DEFAULT_C, DEFAULT_M } from '../utils/pseudoRandom'
+import GradientText from './reactbits/GradientText'
+import ShinyText from './reactbits/ShinyText'
+import CountUp from './reactbits/CountUp'
+import FadeContent from './reactbits/FadeContent'
 
-const MCM_DEFAULTS = { a: 1664525, c: 1013904223, m: 4294967296 }
+const MCM_DEFAULTS = { a: DEFAULT_A, c: DEFAULT_C, m: DEFAULT_M }
 
 // Horizonte fijo por el modelo matemático: 30 días (un mes laboral).
 const DIAS_SIMULACION = 30
@@ -128,14 +133,18 @@ export default function PlantSimulator() {
         href="https://github.com/lautaroCastilloJ/Simulador#readme"
         target="_blank"
         rel="noopener noreferrer"
+        aria-label="Documentación"
       >
-        📄 Documentación
+        <span className="btn-docs__icon" aria-hidden="true">📄</span>
+        <span className="btn-docs__label">Documentación</span>
       </a>
 
       <section id="plant-header">
         <img className="brand-logo" src="/logoElectrogreem.jpg" alt="Logo ElectroGreem S.R.L." />
-        <h1>Planta ElectroGreem S.R.L.</h1>
-        <p>Simulación de tratamiento de proyectores RAEE sobre un horizonte de 30 días (1 mes)</p>
+        <h1><GradientText>Planta ElectroGreem S.R.L.</GradientText></h1>
+        <p>
+          <ShinyText text="Simulación de tratamiento de proyectores RAEE sobre un horizonte de 30 días (1 mes)" />
+        </p>
       </section>
 
       <section id="plant-config">
@@ -250,36 +259,48 @@ export default function PlantSimulator() {
         <>
           <section id="plant-results">
             {/* Indicadores principales del enunciado */}
-            <div className="stats-row">
+            <FadeContent className="stats-row">
               <div className="stat-card">
                 <span className="stat-label">Tiempo total de revisión</span>
-                <span className="stat-value">{fmt(minToHoras(results.tiempoTotalRevision))} h</span>
+                <span className="stat-value">
+                  <CountUp to={minToHoras(results.tiempoTotalRevision)} format={(v) => fmt(v)} /> h
+                </span>
                 <span className="stat-sub subtle">{fmt(results.tiempoTotalRevision)} min</span>
               </div>
               <div className="stat-card">
                 <span className="stat-label">Mercurio recuperado</span>
-                <span className="stat-value">{fmt(results.mercurioRecuperado)}</span>
+                <span className="stat-value">
+                  <CountUp to={results.mercurioRecuperado} format={(v) => fmt(v)} />
+                </span>
               </div>
               <div className="stat-card">
                 <span className="stat-label">Materiales recuperados</span>
-                <span className="stat-value">{fmt(results.materialesRecuperados)}</span>
+                <span className="stat-value">
+                  <CountUp to={results.materialesRecuperados} format={(v) => fmt(v)} />
+                </span>
               </div>
               <div className="stat-card">
                 <span className="stat-label">Proyectores procesados</span>
-                <span className="stat-value">{results.totalProyectores}</span>
+                <span className="stat-value">
+                  <CountUp to={results.totalProyectores} format={(v) => fmt(v, 0)} />
+                </span>
               </div>
               <div className="stat-card stat-card--theory">
                 <span className="stat-label">Triaje acumulado</span>
-                <span className="stat-value">{fmt(results.tiempoTriajeTotal)} min</span>
+                <span className="stat-value">
+                  <CountUp to={results.tiempoTriajeTotal} format={(v) => fmt(v)} /> min
+                </span>
               </div>
               <div className="stat-card stat-card--theory">
                 <span className="stat-label">Servicio acumulado</span>
-                <span className="stat-value">{fmt(results.tiempoServicioTotal)} min</span>
+                <span className="stat-value">
+                  <CountUp to={results.tiempoServicioTotal} format={(v) => fmt(v)} /> min
+                </span>
               </div>
-            </div>
+            </FadeContent>
 
             {/* Decisión gerencial */}
-            <div className={`decision-banner ${results.decision.superaUmbral ? 'decision-banner--alert' : 'decision-banner--ok'}`}>
+            <FadeContent delay={120} className={`decision-banner ${results.decision.superaUmbral ? 'decision-banner--alert' : 'decision-banner--ok'}`}>
               <strong>
                 {results.decision.superaUmbral
                   ? '⚠ Supera el umbral de capacidad'
@@ -297,10 +318,10 @@ export default function PlantSimulator() {
               <p className="subtle">
                 Acumulado sobre {results.config.dias} días (1 mes laboral).
               </p>
-            </div>
+            </FadeContent>
 
             {/* Distribución por ruta */}
-            <div>
+            <FadeContent delay={240}>
               <h2>Derivación por ruta</h2>
               <table id="ruta-table">
                 <thead>
@@ -317,10 +338,10 @@ export default function PlantSimulator() {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </FadeContent>
 
             {/* Llegadas por día */}
-            <div>
+            <FadeContent delay={360}>
               <h2>Llegadas por día <span className="subtle">(semilla {results.seed})</span></h2>
               <div className="histogram-bars">
                 {results.logDiario.map(d => (
@@ -335,7 +356,7 @@ export default function PlantSimulator() {
                   </div>
                 ))}
               </div>
-            </div>
+            </FadeContent>
           </section>
         </>
       )}
@@ -365,8 +386,10 @@ export default function PlantSimulator() {
  * ##########################################################################
  * CONSTANTES Y FUNCIONES AUXILIARES  → líneas 4 a 18
  * ##########################################################################
- * Línea 4  → const MCM_DEFAULTS = { a: 1664525, c: 1013904223, m: 4294967296 }
+ * Línea 5  → const MCM_DEFAULTS = { a: DEFAULT_A, c: DEFAULT_C, m: DEFAULT_M }
  *   Valores por defecto del Método Congruencial Mixto que se cargan en el form.
+ *   Se importan desde pseudoRandom.js (línea 3) para no duplicarlos y mantener
+ *   una única fuente de verdad: a = 1664525, c = 1013904223, m = 4294967291.
  * Línea 7  → const DIAS_SIMULACION = 30
  *   Horizonte fijo del modelo: 30 días (1 mes laboral). No lo edita el usuario.
  * Línea 9  → const UMBRAL_HORAS_DEFAULT = 100
