@@ -270,19 +270,19 @@ export default function PlantSimulator() {
               <div className="stat-card">
                 <span className="stat-label">Mercurio recuperado</span>
                 <span className="stat-value">
-                  <CountUp to={results.mercurioRecuperado} format={(v) => fmt(v)} />
+                  <CountUp to={results.mercurioRecuperado} format={(v) => fmt(v)} /> µg/L
                 </span>
               </div>
               <div className="stat-card">
                 <span className="stat-label">Materiales recuperados</span>
                 <span className="stat-value">
-                  <CountUp to={results.materialesRecuperados} format={(v) => fmt(v)} />
+                  <CountUp to={results.materialesRecuperados} format={(v) => fmt(v)} /> g
                 </span>
               </div>
               <div className="stat-card">
                 <span className="stat-label">Proyectores procesados</span>
                 <span className="stat-value">
-                  <CountUp to={results.totalProyectores} format={(v) => fmt(v, 0)} />
+                  <CountUp to={results.totalProyectores} format={(v) => fmt(v, 0)} /> unidades
                 </span>
               </div>
               <div className="stat-card stat-card--theory">
