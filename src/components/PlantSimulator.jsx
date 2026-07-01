@@ -1,10 +1,15 @@
 import { useState, useCallback, useMemo } from 'react'
 import { runSimulation, ELECTROGREEM_CONFIG } from '../utils/plantSimulation'
 import { DEFAULT_A, DEFAULT_C, DEFAULT_M } from '../utils/pseudoRandom'
+import {
+  NOMBRES_RUTA, ICONOS_RUTA, fmt, minToHoras, cargarHistorial, guardarHistorial,
+} from '../utils/reporte'
 import GradientText from './reactbits/GradientText'
 import ShinyText from './reactbits/ShinyText'
 import CountUp from './reactbits/CountUp'
 import FadeContent from './reactbits/FadeContent'
+import HistorialPanel from './HistorialPanel'
+import HistogramaLlegadas from './HistogramaLlegadas'
 
 const MCM_DEFAULTS = { a: DEFAULT_A, c: DEFAULT_C, m: DEFAULT_M }
 
@@ -12,14 +17,6 @@ const MCM_DEFAULTS = { a: DEFAULT_A, c: DEFAULT_C, m: DEFAULT_M }
 const DIAS_SIMULACION = 30
 // Valor por defecto del umbral de capacidad operativa.
 const UMBRAL_HORAS_DEFAULT = 100
-
-const NOMBRES_RUTA = ['Reacondicionamiento', 'Desensamblaje', 'Descontaminación', 'Almacenamiento']
-
-const fmt = (n, d = 2) =>
-  n.toLocaleString('es-AR', { minimumFractionDigits: d, maximumFractionDigits: d })
-
-// El motor trabaja en minutos; la interfaz opera en horas laborales.
-const minToHoras = (min) => min / 60
 const horasToMin = (h) => h * 60
 
 /**
@@ -33,6 +30,30 @@ function HelpTip({ text }) {
       <span className="help-tip__icon" aria-hidden="true">ⓘ</span>
       <span className="help-tip__bubble" role="tooltip">{text}</span>
     </span>
+  )
+}
+
+/**
+ * Tarjeta de indicador para el panel gerencial: ícono, etiqueta en lenguaje
+ * claro, valor grande con su unidad y un detalle secundario opcional
+ * (por ejemplo, el equivalente en minutos). Con "tone='accent'" se destaca.
+ */
+function MetricCard({ icon, label, value, unit, decimals = 2, sub, tone = 'neutral', hint }) {
+  return (
+    <div className={`metric-card metric-card--${tone}`}>
+      <span className="metric-card__icon" aria-hidden="true">{icon}</span>
+      <div className="metric-card__body">
+        <span className="metric-card__label">
+          {label}
+          {hint && <HelpTip text={hint} />}
+        </span>
+        <span className="metric-card__value">
+          <CountUp to={value} format={(v) => fmt(v, decimals)} />
+          {unit && <span className="metric-card__unit">{unit}</span>}
+        </span>
+        {sub && <span className="metric-card__sub subtle">{sub}</span>}
+      </div>
+    </div>
   )
 }
 
@@ -97,6 +118,11 @@ export default function PlantSimulator() {
 
   const [results, setResults] = useState(null)
 
+  // Historial de simulaciones de la sesión (persistido en sessionStorage).
+  const [historial, setHistorial] = useState(cargarHistorial)
+  const [historialAbierto, setHistorialAbierto] = useState(false)
+  const [detalleId, setDetalleId] = useState(null)
+
   // Validación reactiva: se recalcula con cada cambio de campo.
   const errores = useMemo(
     () => validarCampos({ tasa, umbralHoras, seed, mcmA, mcmC, mcmM }),
@@ -122,22 +148,65 @@ export default function PlantSimulator() {
       },
     })
     setResults(r)
+
+    // Registra la corrida en el historial de la sesión (más reciente primero).
+    setHistorial((prev) => {
+      const entry = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        numero: (prev[0]?.numero ?? 0) + 1,
+        timestamp: Date.now(),
+        results: r,
+      }
+      const next = [entry, ...prev]
+      guardarHistorial(next)
+      return next
+    })
   }, [hayErrores, seed, tasa, umbralHoras, mcmA, mcmC, mcmM])
 
-  const maxLlegadas = results ? Math.max(...results.logDiario.map(d => d.llegadas), 1) : 1
+  const abrirHistorial = useCallback(() => { setDetalleId(null); setHistorialAbierto(true) }, [])
+  const cerrarHistorial = useCallback(() => { setHistorialAbierto(false); setDetalleId(null) }, [])
+  const limpiarHistorial = useCallback(() => {
+    setHistorial([])
+    guardarHistorial([])
+    setDetalleId(null)
+  }, [])
 
   return (
     <>
-      <a
-        className="btn-docs"
-        href="https://github.com/lautaroCastilloJ/Simulador#readme"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Documentación"
-      >
-        <span className="btn-docs__icon" aria-hidden="true">📄</span>
-        <span className="btn-docs__label">Documentación</span>
-      </a>
+      <div className="top-actions">
+        <a
+          className="btn-docs"
+          href="https://github.com/lautaroCastilloJ/Simulador#readme"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Documentación"
+        >
+          <span className="btn-docs__icon" aria-hidden="true">📄</span>
+          <span className="btn-docs__label">Documentación</span>
+        </a>
+        <button
+          type="button"
+          className="btn-docs btn-historial"
+          onClick={abrirHistorial}
+          aria-label="Historial de simulaciones"
+        >
+          <span className="btn-docs__icon" aria-hidden="true">🕘</span>
+          <span className="btn-docs__label">
+            Historial{historial.length > 0 && ` (${historial.length})`}
+          </span>
+        </button>
+      </div>
+
+      {historialAbierto && (
+        <HistorialPanel
+          historial={historial}
+          detalleId={detalleId}
+          onClose={cerrarHistorial}
+          onSelect={setDetalleId}
+          onBack={() => setDetalleId(null)}
+          onLimpiar={limpiarHistorial}
+        />
+      )}
 
       <section id="plant-header">
         <img className="brand-logo" src="/logoElectrogreem.jpg" alt="Logo ElectroGreem S.R.L." />
@@ -258,44 +327,49 @@ export default function PlantSimulator() {
       {results && (
         <>
           <section id="plant-results">
-            {/* Indicadores principales del enunciado */}
-            <FadeContent className="stats-row">
-              <div className="stat-card">
-                <span className="stat-label">Tiempo total de revisión</span>
-                <span className="stat-value">
-                  <CountUp to={minToHoras(results.tiempoTotalRevision)} format={(v) => fmt(v)} /> h
-                </span>
-                <span className="stat-sub subtle">{fmt(results.tiempoTotalRevision)} min</span>
-              </div>
-              <div className="stat-card">
-                <span className="stat-label">Mercurio recuperado</span>
-                <span className="stat-value">
-                  <CountUp to={results.mercurioRecuperado} format={(v) => fmt(v)} /> µg/L
-                </span>
-              </div>
-              <div className="stat-card">
-                <span className="stat-label">Materiales recuperados</span>
-                <span className="stat-value">
-                  <CountUp to={results.materialesRecuperados} format={(v) => fmt(v)} /> g
-                </span>
-              </div>
-              <div className="stat-card">
-                <span className="stat-label">Proyectores procesados</span>
-                <span className="stat-value">
-                  <CountUp to={results.totalProyectores} format={(v) => fmt(v, 0)} /> unidades
-                </span>
-              </div>
-              <div className="stat-card stat-card--theory">
-                <span className="stat-label">Triaje acumulado</span>
-                <span className="stat-value">
-                  <CountUp to={results.tiempoTriajeTotal} format={(v) => fmt(v)} /> min
-                </span>
-              </div>
-              <div className="stat-card stat-card--theory">
-                <span className="stat-label">Servicio acumulado</span>
-                <span className="stat-value">
-                  <CountUp to={results.tiempoServicioTotal} format={(v) => fmt(v)} /> min
-                </span>
+            {/* Panel de indicadores para gerencia */}
+            <FadeContent>
+              <h2>Resumen del mes</h2>
+              <div className="metrics-grid">
+                <MetricCard
+                  icon="📽️" tone="accent"
+                  label="Proyectores procesados"
+                  value={results.totalProyectores} decimals={0} unit="unidades"
+                  sub={`en ${results.config.dias} días (1 mes laboral)`}
+                />
+                <MetricCard
+                  icon="⏱️" tone="accent"
+                  label="Carga de trabajo total"
+                  hint="Tiempo total de revisión (triaje + servicio) que insumieron todos los proyectores del mes. Es lo que se compara contra el umbral de capacidad."
+                  value={minToHoras(results.tiempoTotalRevision)} unit="h"
+                  sub={`${fmt(results.tiempoTotalRevision)} min`}
+                />
+                <MetricCard
+                  icon="🔍"
+                  label="Triaje acumulado"
+                  hint="Horas dedicadas a la inspección inicial de todos los proyectores del mes."
+                  value={minToHoras(results.tiempoTriajeTotal)} unit="h"
+                  sub={`${fmt(results.tiempoTriajeTotal)} min`}
+                />
+                <MetricCard
+                  icon="🛠️"
+                  label="Servicio acumulado"
+                  hint="Horas de trabajo en las estaciones (reacondicionamiento, desensamblaje y descontaminación) sobre todos los proyectores."
+                  value={minToHoras(results.tiempoServicioTotal)} unit="h"
+                  sub={`${fmt(results.tiempoServicioTotal)} min`}
+                />
+                <MetricCard
+                  icon="🧪"
+                  label="Mercurio recuperado"
+                  hint="Mercurio recuperado en la estación de Descontaminación durante el mes."
+                  value={results.mercurioRecuperado} unit="µg/L"
+                />
+                <MetricCard
+                  icon="♻️"
+                  label="Materiales recuperados"
+                  hint="Plásticos y metales recuperados en la estación de Desensamblaje durante el mes."
+                  value={results.materialesRecuperados} unit="g"
+                />
               </div>
             </FadeContent>
 
@@ -320,42 +394,59 @@ export default function PlantSimulator() {
               </p>
             </FadeContent>
 
-            {/* Distribución por ruta */}
+            {/* Derivación por estación: de N proyectores, cuántos fue a cada una */}
             <FadeContent delay={240}>
-              <h2>Derivación por ruta</h2>
-              <table id="ruta-table">
-                <thead>
-                  <tr><th>Ruta</th><th>Equipos</th><th>%</th><th>Prob. teórica</th></tr>
-                </thead>
-                <tbody>
-                  {results.conteoRutas.map((c, i) => (
-                    <tr key={i}>
-                      <td>{NOMBRES_RUTA[i]}</td>
-                      <td>{c}</td>
-                      <td>{results.totalProyectores ? fmt(100 * c / results.totalProyectores, 1) : '0.0'}%</td>
-                      <td className="subtle">{fmt(100 * results.config.probabilidades[i], 0)}%</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <h2>¿A dónde fueron los proyectores?</h2>
+              <p className="ruta-intro">
+                En el mes se procesaron{' '}
+                <strong>
+                  <CountUp to={results.totalProyectores} format={(v) => fmt(v, 0)} /> proyectores
+                </strong>.
+                Así se repartieron entre las cuatro estaciones:
+              </p>
+
+              <div className="ruta-breakdown">
+                {results.conteoRutas.map((c, i) => {
+                  const pct = results.totalProyectores ? (100 * c) / results.totalProyectores : 0
+                  const teorico = 100 * results.config.probabilidades[i]
+                  return (
+                    <div className="ruta-card" key={i}>
+                      <div className="ruta-card__head">
+                        <span className="ruta-card__icon" aria-hidden="true">{ICONOS_RUTA[i]}</span>
+                        <span className="ruta-card__name">{NOMBRES_RUTA[i]}</span>
+                        <span className="ruta-card__count">
+                          <CountUp to={c} format={(v) => fmt(v, 0)} />
+                          <span className="ruta-card__unit"> proyectores</span>
+                        </span>
+                      </div>
+
+                      <div
+                        className="ruta-card__track"
+                        role="img"
+                        aria-label={`${NOMBRES_RUTA[i]}: ${c} proyectores, ${fmt(pct, 1)}% del total (objetivo teórico ${fmt(teorico, 0)}%)`}
+                      >
+                        <div className="ruta-card__fill" style={{ '--ruta-pct': `${pct}%` }} />
+                        <span
+                          className="ruta-card__marker"
+                          style={{ '--ruta-teorico': `${teorico}%` }}
+                          title={`Objetivo teórico: ${fmt(teorico, 0)}%`}
+                        />
+                      </div>
+
+                      <div className="ruta-card__meta">
+                        <span className="ruta-card__pct">{fmt(pct, 1)}% del total</span>
+                        <span className="subtle">objetivo teórico {fmt(teorico, 0)}%</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </FadeContent>
 
-            {/* Llegadas por día */}
+            {/* Actividad diaria (histograma interactivo) */}
             <FadeContent delay={360}>
-              <h2>Llegadas por día <span className="subtle">(semilla {results.seed})</span></h2>
-              <div className="histogram-bars">
-                {results.logDiario.map(d => (
-                  <div key={d.dia} className="bar-col">
-                    <span className="bar-count">{d.llegadas}</span>
-                    <div
-                      className="bar"
-                      style={{ '--bar-h': `${(d.llegadas / maxLlegadas) * 100}%` }}
-                      title={`Día ${d.dia}: ${d.llegadas} proyectores · ${fmt(d.tiempoDia)} min`}
-                    />
-                    <span className="bar-label">{d.dia}</span>
-                  </div>
-                ))}
-              </div>
+              <h2>Actividad por día <span className="subtle">(semilla {results.seed})</span></h2>
+              <HistogramaLlegadas logDiario={results.logDiario} />
             </FadeContent>
           </section>
         </>

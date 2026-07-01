@@ -223,102 +223,241 @@
   cursor: not-allowed;
 }
 
-/* ── Shared: stats row + cards ───────────────────────────── */
-.stats-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+/* ── Panel de indicadores gerenciales ────────────────────── */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
 }
 
-.stat-card {
-  flex: 1 1 110px;
+.metric-card {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
-  background: var(--code-bg);
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--code-bg);
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
-.stat-label {
-  font-size: 11px;
-  color: var(--text);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.stat-value {
-  font-family: var(--mono);
-  font-size: 15px;
-  color: var(--text-h);
-  font-weight: 500;
-  word-break: break-all;
-}
-
-.stat-card--theory {
+.metric-card:hover {
+  transform: translateY(-2px);
   border-color: var(--accent-border);
-  background: var(--accent-bg);
-
-  .stat-label { color: var(--accent); }
+  box-shadow: var(--shadow);
 }
 
-/* ── Shared: histogram ───────────────────────────────────── */
-.histogram-bars {
-  display: flex;
-  align-items: flex-end;
-  gap: 6px;
-  height: 200px;
-  margin-top: 20px;
-
-  @media (max-width: 640px) {
-    overflow-x: auto;
-    padding-bottom: 8px;
-  }
-}
-
-.bar-col {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-
-  @media (max-width: 640px) {
-    min-width: 18px;
-  }
-  flex-direction: column;
+.metric-card__icon {
+  flex-shrink: 0;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  height: 100%;
-  justify-content: flex-end;
-}
-
-.bar-count {
-  font-size: 11px;
-  font-family: var(--mono);
-  color: var(--text);
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 11px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  font-size: 23px;
   line-height: 1;
 }
 
-.bar {
-  width: 100%;
-  height: var(--bar-h, 0%);
-  min-height: 2px;
+.metric-card--accent {
+  border-color: var(--accent-border);
   background: var(--accent-bg);
-  border: 1px solid var(--accent-border);
-  border-radius: 3px 3px 0 0;
-  transition: height 0.35s ease;
 }
 
-.bar-label {
+.metric-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.metric-card__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-weight: 600;
+}
+
+.metric-card--accent .metric-card__label {
+  color: var(--accent);
+}
+
+.metric-card__value {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--text-h);
+  line-height: 1.1;
+  word-break: break-word;
+}
+
+.metric-card__unit {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.metric-card__sub {
+  font-size: 12px;
+  font-family: var(--mono);
+}
+
+/* ── Histograma interactivo (actividad diaria) ───────────── */
+.hist2 {
+  margin-top: 12px;
+}
+
+.hist2__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.hist2__toggle {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.hist2__toggle-btn {
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 6px 14px;
+  background: var(--bg);
+  color: var(--text);
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  & + & { border-left: 1px solid var(--border); }
+  &:hover { color: var(--text-h); }
+  &.is-active { background: var(--accent-bg); color: var(--accent); font-weight: 600; }
+  &:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+}
+
+.hist2__hint { font-size: 12px; }
+
+.hist2__readout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 18px;
+  min-height: 44px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--code-bg);
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--text-h);
+  transition: border-color 0.15s;
+}
+
+.hist2__readout.is-on { border-color: var(--accent-border); }
+.hist2__readout-day { font-weight: 700; color: var(--accent); }
+
+.hist2__scroll {
+  overflow-x: auto;
+  padding: 12px 0 22px;
+}
+
+.hist2__chart {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 220px;
+
+  @media (max-width: 640px) {
+    min-width: 560px;
+  }
+}
+
+.hist2__avg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--prom, 0%);
+  height: 0;
+  border-top: 1px dashed var(--text);
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hist2__avg-label {
+  position: absolute;
+  right: 0;
+  top: -8px;
+  transform: translateY(-50%);
+  font-family: var(--mono);
   font-size: 10px;
   color: var(--text);
-  text-align: center;
-  line-height: 1.2;
-  width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  background: var(--bg);
+  padding: 0 4px;
 }
+
+.hist2__bar-col {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+
+  &:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  &.is-dim { opacity: 0.4; }
+}
+
+.hist2__bar {
+  width: 100%;
+  height: var(--bar-h, 0%);
+  min-height: 3px;
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 4px 4px 0 0;
+  transition: height 0.4s ease, background 0.15s, border-color 0.15s;
+}
+
+.hist2__bar-col.is-active .hist2__bar {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.hist2__bar-label {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 10px;
+  color: var(--text);
+  line-height: 1.1;
+  pointer-events: none;
+}
+
+.hist2__bar-col.is-active .hist2__bar-label { color: var(--accent); font-weight: 600; }
 
 h2 .subtle {
   font-size: 14px;
@@ -326,12 +465,28 @@ h2 .subtle {
   color: var(--text);
 }
 
-/* ── Botón Documentación (barra superior) ────────────────── */
-.btn-docs {
+/* ── Acciones superiores (Documentación / Historial) ─────── */
+.top-actions {
   position: fixed;
   top: 16px;
   right: 16px;
   z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+
+  @media (max-width: 1024px) {
+    top: 12px;
+    right: 12px;
+  }
+  @media (max-width: 640px) {
+    top: 10px;
+    right: 10px;
+  }
+}
+
+.btn-docs {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -340,9 +495,11 @@ h2 .subtle {
   background: var(--accent-bg);
   border: 1px solid var(--accent-border);
   color: var(--accent);
+  font-family: inherit;
   font-size: 14px;
   font-weight: 500;
   text-decoration: none;
+  cursor: pointer;
   box-shadow: var(--shadow);
   transition: border-color 0.2s, background 0.2s;
 
@@ -355,8 +512,6 @@ h2 .subtle {
   }
 
   @media (max-width: 1024px) {
-    top: 12px;
-    right: 12px;
     padding: 6px 12px;
     font-size: 13px;
   }
@@ -364,8 +519,6 @@ h2 .subtle {
   /* En celular se colapsa a un botón circular con solo el ícono, para no
      ocupar ancho ni pisar el encabezado. El texto sigue accesible por aria-label. */
   @media (max-width: 640px) {
-    top: 10px;
-    right: 10px;
     width: 40px;
     height: 40px;
     padding: 0;
@@ -382,6 +535,8 @@ h2 .subtle {
     }
   }
 }
+
+/* El botón Historial reusa exactamente el estilo (y color) de .btn-docs. */
 
 /* ── Plant Simulator ─────────────────────────────────────── */
 #plant-header {
@@ -464,30 +619,375 @@ h2 .subtle {
   strong { color: #e45; }
 }
 
-#ruta-table {
-  width: 100%;
-  max-width: 520px;
-  border-collapse: collapse;
+/* ── Derivación por estación (breakdown de proyectores) ──── */
+.ruta-intro {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+  margin: 4px 0 20px;
+
+  strong { color: var(--text-h); font-weight: 600; }
+}
+
+.ruta-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 620px;
+}
+
+.ruta-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--code-bg);
+}
+
+.ruta-card__head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.ruta-card__icon {
+  font-size: 20px;
+  line-height: 1;
+  align-self: center;
+}
+
+.ruta-card__name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.ruta-card__count {
+  margin-left: auto;
   font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.ruta-card__unit {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text);
+}
+
+/* Barra: relleno = % real; marcador = objetivo teórico */
+.ruta-card__track {
+  position: relative;
+  height: 12px;
+  border-radius: 6px;
+  background: var(--accent-bg);
+  overflow: hidden;
+}
+
+.ruta-card__fill {
+  height: 100%;
+  width: var(--ruta-pct, 0%);
+  background: var(--accent);
+  border-radius: 6px 0 0 6px;
+  transition: width 0.5s ease;
+}
+
+.ruta-card__marker {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  left: var(--ruta-teorico, 0%);
+  width: 2px;
+  background: var(--text-h);
+  opacity: 0.55;
+}
+
+.ruta-card__meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+.ruta-card__pct {
+  color: var(--text-h);
+  font-weight: 500;
+}
+
+/* ── Historial: panel lateral ────────────────────────────── */
+.hist-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: flex-end;
+  animation: hist-fade 0.2s ease;
+}
+
+@keyframes hist-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.hist-panel {
+  width: min(440px, 100%);
+  height: 100%;
+  background: var(--bg);
+  border-left: 1px solid var(--border);
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  animation: hist-slide 0.25s ease;
+}
+
+@keyframes hist-slide {
+  from { transform: translateX(24px); opacity: 0.6; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+.hist-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.hist-panel__title {
+  margin: 0;
+  font-size: 18px;
+}
+
+.hist-panel__close {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+
+  &:hover { background: var(--code-bg); color: var(--text-h); }
+}
+
+.hist-panel__foot {
+  padding: 12px 18px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.hist-empty {
+  padding: 40px 24px;
+  text-align: center;
+
+  p { margin: 0 0 6px; color: var(--text); }
+}
+
+/* Lista de corridas */
+.hist-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hist-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  text-align: left;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--code-bg);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s, transform 0.15s;
+
+  &:hover { border-color: var(--accent-border); transform: translateY(-1px); }
+  &:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+}
+
+.hist-item__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.hist-item__num {
+  font-weight: 600;
+  color: var(--text-h);
+  font-size: 15px;
+}
+
+.hist-item__date {
+  font-size: 12px;
+  font-family: var(--mono);
+}
+
+.hist-item__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text-h);
+}
+
+.hist-chip {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.hist-chip--ok {
+  color: #1f9d63;
+  background: rgba(34, 170, 110, 0.12);
+  border: 1px solid rgba(34, 170, 110, 0.4);
+}
+
+.hist-chip--alert {
+  color: #e45;
+  background: rgba(228, 90, 90, 0.12);
+  border: 1px solid rgba(228, 90, 90, 0.4);
+}
+
+/* Detalle de una corrida */
+.hist-detalle {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.hist-detalle__head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  h3 { margin: 0; font-size: 18px; color: var(--text-h); }
+}
+
+.hist-params {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  margin: 0;
+  padding: 14px;
+  background: var(--code-bg);
+  border-radius: 10px;
+
+  div { display: flex; flex-direction: column; gap: 1px; }
+  dt { font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text); }
+  dd { margin: 0; font-family: var(--mono); font-size: 14px; color: var(--text-h); }
+}
+
+.hist-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.hist-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.hist-metric__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text);
+}
+
+.hist-metric__value {
+  font-family: var(--mono);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.hist-metric__unit {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text);
+}
+
+.hist-subtitle {
+  margin: 4px 0 0;
   font-size: 14px;
-  margin-top: 16px;
+  color: var(--text-h);
+}
 
-  th {
-    text-align: left;
-    padding: 6px 16px 6px 0;
-    color: var(--text);
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 1px solid var(--border);
-    font-weight: 400;
-  }
+.hist-rutas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-  td {
-    padding: 7px 16px 7px 0;
-    color: var(--text-h);
-    border-bottom: 1px solid var(--border);
-  }
+.hist-ruta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--code-bg);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.hist-ruta__name { color: var(--text-h); }
+.hist-ruta__val { font-family: var(--mono); color: var(--text-h); }
+
+.hist-decision {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+
+  strong { font-size: 14px; }
+  span { font-family: var(--mono); font-size: 13px; color: var(--text); }
+}
+
+.hist-decision--ok {
+  border-color: rgba(34, 170, 110, 0.5);
+  background: rgba(34, 170, 110, 0.1);
+  strong { color: #1f9d63; }
+}
+
+.hist-decision--alert {
+  border-color: rgba(228, 90, 90, 0.5);
+  background: rgba(228, 90, 90, 0.1);
+  strong { color: #e45; }
+}
+
+.hist-pdf {
+  align-self: flex-start;
+  margin-top: 4px;
 }
 
 /* ── Bottom spacer ───────────────────────────────────────── */

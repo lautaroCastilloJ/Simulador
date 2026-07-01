@@ -39,8 +39,8 @@ export const ELECTROGREEM_CONFIG = {
   tasaLlegadas: 3,          // α: proyectores por día (Poisson)
   triaje: { a: 20, b: 35 }, // tiempo de inspección inicial (Uniforme, min)
 
-  // Probabilidades de cada ruta → F(X) acumulada: 0.35, 0.75, 0.85, 1.00
-  probabilidades: [0.35, 0.40, 0.10, 0.15],
+  // Probabilidades de cada ruta → F(X) acumulada: 0.35, 0.75, 0.90, 1.00
+  probabilidades: [0.35, 0.40, 0.15, 0.10],
 
   rutas: [
     { nombre: 'Reacondicionamiento', mediaServicio: 90 },
@@ -204,8 +204,8 @@ export function runSimulation({ config = ELECTROGREEM_CONFIG, seed, mcm = {} } =
  * Línea 38  → dias: 30  Cantidad de días que dura la simulación (horizonte).
  * Línea 39  → tasaLlegadas: 3  α de la Poisson: proyectores promedio por día.
  * Línea 40  → triaje: { a: 20, b: 35 }  Límites de la Uniforme del triaje (min).
- * Línea 43  → probabilidades: [0.35, 0.40, 0.10, 0.15]  Probabilidad de cada
- *   ruta; al acumularlas dan F(X) = 0.35, 0.75, 0.85, 1.00.
+ * Línea 43  → probabilidades: [0.35, 0.40, 0.15, 0.10]  Probabilidad de cada
+ *   ruta; al acumularlas dan F(X) = 0.35, 0.75, 0.90, 1.00.
  * Líneas 45-50 → rutas: [...]  Arreglo con el nombre y la media de servicio
  *   (mediaServicio) de cada ruta. Almacenamiento usa 0 (no consume servicio).
  * Línea 53  → mercurio: { a, b, tasaRecuperacion }  Parámetros de la Uniforme de

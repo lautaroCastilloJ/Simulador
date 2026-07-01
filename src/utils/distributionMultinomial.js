@@ -5,11 +5,11 @@
  * probabilidades acumuladas F(X) de cada categoría. Devuelve la primera
  * categoría cuyo límite acumulado supera a u.
  *
- * Lógica de decisión (ejemplo con 4 categorías):
+ * Lógica de decisión (ejemplo con 4 categorías, prob. [0.35, 0.40, 0.15, 0.10]):
  *   u < 0.35              → categoría 0
  *   u < 0.75              → categoría 1
- *   u < 0.85              → categoría 2
- *   u ≥ 0.85 (resto)      → categoría 3
+ *   u < 0.90              → categoría 2
+ *   u ≥ 0.90 (resto)      → categoría 3
  */
 
 /**
